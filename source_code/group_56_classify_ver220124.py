@@ -35,20 +35,22 @@ def main():
         for idx, brcd in tqdm(enumerate(df_by_mm_num['Brcd']),
                               desc='Make dictionaries', ncols=100, total=len(df_by_mm_num)):
 
-            data = df_by_mm_num.loc[idx]
+            df = df_by_mm_num.loc[idx]
 
             if brcd not in dict_out:
                 dict_cPE[brcd] = {}
                 dict_cBG[brcd] = {}
-                dict_out[brcd] = {'Trgt': brcd, 'PBS': data['PBS'], 'RTT': data['RTT'], 'MM': data['MM'],
-                                  'posEdit': data['posEdit'], 'On-trgt': data['On-trgt'], 'WTSeq': data['WTSeq']}
+                dict_out[brcd] = {'Brcd': brcd, 'PBS': df['PBS'], 'RTT': df['RTT'], 'MM': df['MM'],
+                                  'posEdit': df['posEdit'], 'On-trgt': df['On-trgt'], 'WTSeq': df['WTSeq'].upper()}
                 d = dict_out[brcd]
                 temp_CltSeq = list(d['WTSeq'][:21] + d['On-trgt'][21:21 + d['RTT']] + d['WTSeq'][21 + d['RTT']:])
                 temp_CltSeq[25] = 'c' ## pos +5 G to C transversion
-                d['CompltEditSeq'] = ''.join(temp_CltSeq)
+                d['CompltEditSeq'] = ''.join(temp_CltSeq).upper()
 
-            dict_cPE[brcd][data['RefSeq']] = data['cPE']
-            dict_cBG[brcd][data['RefSeq']] = data['cBG']
+            dict_cPE[brcd][df['RefSeq']] = df['cPE']
+            dict_cBG[brcd][df['RefSeq']] = df['cBG']
+
+        # for loop end: df_by_mm_num
 
         for brcd in dict_out:
             d = dict_out[brcd]
@@ -56,7 +58,7 @@ def main():
             tot_cPE = sum(list(dict_cPE[brcd].values()))
             otr_cPE = dict_cPE[brcd]['Other']
             WT_cPE  = dict_cPE[brcd][d['WTSeq']]
-            clt_cPE = dict_cPE[brcd][d['CompltEditSeq']]
+            clt_cPE = dict_cPE[brcd][d['CompltEditSeq']] ### key error for complt edit seq -> 아마도 cltSeq 만드는 code가 잘못된듯
             par_cPE = tot_cPE - otr_cPE - WT_cPE - clt_cPE
 
             ## read count for BG
@@ -69,41 +71,45 @@ def main():
             ## Calculate editing efficiency
 
             # init value
-            raw_BG_effi = 0
-            raw_PE_effi = 0
-            compl_only_effi = 0
-            Inten_only_effi = 0
-            MisMt_only_effi = 0
-            All_edited_effi = 0
-
-            # read count BG normalization
-
             woOther_BG = tot_cBG - otr_cBG
             woOther_PE = tot_cPE - otr_cPE
+
+            BG_All_Edit_Effi = 100 * (woOther_PE * ((clt_cBG + par_cBG) / woOther_BG))
+            PE_clt_only_effi = 0
+            PE_Par_only_effi = 0
+            PE_All_edit_effi = 0
+
+            # read count BG normalization
 
             if woOther_BG:
                 norm_Clt = (woOther_PE * (clt_cBG / woOther_BG))
                 norm_Par = (woOther_PE * (par_cBG / woOther_BG))
-                norm_Any = (woOther_PE * ((clt_cBG + par_cBG) / woOther_BG))
+                norm_All = (woOther_PE * ((clt_cBG + par_cBG) / woOther_BG))
             else:
                 norm_Clt = 0
                 norm_Par = 0
-                norm_Any = 0
+                norm_All = 0
 
+            if woOther_PE - norm_Clt:
+                PE_clt_only_effi = ((clt_cPE - norm_Clt) / (woOther_PE - norm_Clt)) * 100
+            if woOther_PE - norm_Par:
+                PE_Par_only_effi = ((par_cPE - norm_Par) / (woOther_PE - norm_Par)) * 100
+            if woOther_PE - norm_All:
+                PE_All_edit_effi = (((clt_cBG + par_cBG) - norm_All) / (woOther_PE - norm_All)) * 100
 
+            # make output
+            d['BG_AllEdit']   = BG_All_Edit_Effi # complete + partial edit in BG sample
+            d['PE_CmpltEdit'] = PE_clt_only_effi # complete edit (expected product) fraction
+            d['PE_PartlEdit'] = PE_Par_only_effi # partial edit (unexpected product; Not WT or complete edit)
+            d['PE_AllEdit']   = PE_All_edit_effi # complete + partial edit
 
-            if PE[Total_read_type] - norm_ALt:
-                compl_only_effi = ((PE['Alt'] - norm_ALt) / (PE[Total_read_type] - norm_ALt)) * 100
-            if PE[Total_read_type] - norm_Int:
-                Inten_only_effi = ((PE['Intended'] - norm_Int) / (PE[Total_read_type] - norm_Int)) * 100
-            if PE[Total_read_type] - norm_MM:
-                MisMt_only_effi = ((PE['Mismatch'] - norm_MM) / (PE[Total_read_type] - norm_MM)) * 100
-            if PE[Total_read_type] - norm_Any:
-                All_edited_effi = ((PE['Any_edit'] - norm_Any) / (PE[Total_read_type] - norm_Any)) * 100
+        print('MM test')
 
+        df_result = pd.DataFrame(dict_out).T
+        print(df_result)
 
-
-
+        # for loop end: dict_out
+    # for loop end: list_mismatch_num
 
 
 
