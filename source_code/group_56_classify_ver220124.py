@@ -68,12 +68,38 @@ def main():
 
             ## Calculate editing efficiency
 
+            # init value
+            raw_BG_effi = 0
+            raw_PE_effi = 0
+            compl_only_effi = 0
+            Inten_only_effi = 0
+            MisMt_only_effi = 0
+            All_edited_effi = 0
+
+            # read count BG normalization
+
+            woOther_BG = tot_cBG - otr_cBG
+            woOther_PE = tot_cPE - otr_cPE
+
+            if woOther_BG:
+                norm_Clt = (woOther_PE * (clt_cBG / woOther_BG))
+                norm_Par = (woOther_PE * (par_cBG / woOther_BG))
+                norm_Any = (woOther_PE * ((clt_cBG + par_cBG) / woOther_BG))
+            else:
+                norm_Clt = 0
+                norm_Par = 0
+                norm_Any = 0
 
 
 
-
-
-
+            if PE[Total_read_type] - norm_ALt:
+                compl_only_effi = ((PE['Alt'] - norm_ALt) / (PE[Total_read_type] - norm_ALt)) * 100
+            if PE[Total_read_type] - norm_Int:
+                Inten_only_effi = ((PE['Intended'] - norm_Int) / (PE[Total_read_type] - norm_Int)) * 100
+            if PE[Total_read_type] - norm_MM:
+                MisMt_only_effi = ((PE['Mismatch'] - norm_MM) / (PE[Total_read_type] - norm_MM)) * 100
+            if PE[Total_read_type] - norm_Any:
+                All_edited_effi = ((PE['Any_edit'] - norm_Any) / (PE[Total_read_type] - norm_Any)) * 100
 
 
 

@@ -90,7 +90,12 @@ def calc_norm_effi(df_PE, df_BG, Total_read_type):
         PE = df_PE.loc[barcode]
         BG = df_BG.loc[barcode]
 
-        raw_BG_effi = raw_PE_effi = compl_only_effi = Inten_only_effi = MisMt_only_effi = All_edited_effi = 0
+        raw_BG_effi = 0
+        raw_PE_effi = 0
+        compl_only_effi = 0
+        Inten_only_effi = 0
+        MisMt_only_effi = 0
+        All_edited_effi = 0
 
         if BG[Total_read_type]: raw_BG_effi = 100 * (BG['Any_edit'] / BG[Total_read_type])
         if PE[Total_read_type]: raw_PE_effi = 100 * (PE['Any_edit'] / PE[Total_read_type])
@@ -101,7 +106,10 @@ def calc_norm_effi(df_PE, df_BG, Total_read_type):
             norm_MM = (PE[Total_read_type] * (BG['Mismatch'] / BG[Total_read_type]))
             norm_Any = (PE[Total_read_type] * (BG['Any_edit'] / BG[Total_read_type]))
         else:
-            norm_ALt = norm_Int = norm_MM = norm_Any = 0
+            norm_ALt = 0
+            norm_Int = 0
+            norm_MM = 0
+            norm_Any = 0
 
         if PE[Total_read_type] - norm_ALt:
             compl_only_effi = ((PE['Alt'] - norm_ALt) / (PE[Total_read_type] - norm_ALt)) * 100
