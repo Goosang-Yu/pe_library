@@ -102,7 +102,7 @@ def main():
             if woOther_PE - norm_Par:
                 PE_Par_only_effi = ((par_cPE - norm_Par) / (woOther_PE - norm_Par)) * 100
             if woOther_PE - norm_All:
-                PE_All_edit_effi = (((clt_cBG + par_cBG) - norm_All) / (woOther_PE - norm_All)) * 100
+                PE_All_edit_effi = (((clt_cPE + par_cPE) - norm_All) / (woOther_PE - norm_All)) * 100
 
             # make output
 
