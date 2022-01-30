@@ -1,4 +1,4 @@
-import Bio.SeqIO
+import Bio.SeqIO, os
 import pandas as pd
 import sys, time, regex
 from tqdm import tqdm
@@ -6,16 +6,16 @@ from tqdm import tqdm
 start = time.time()
 
 def main():
-    sAnalysis_Tag = '4_GS_PECV6K_NGPE_1_1rxn_220118'
-    BaseDIR = r'C:\Users\gsyu9\Desktop\220128_miniseq\%s' % sAnalysis_Tag
-    FASTQ_file   = r'%s\4.fastq' % BaseDIR
+    sAnalysis_Tag = '63_GS_PE off-target_283T_2_1rxn_220118'
+    BaseDIR = r'C:\Users\home\Desktop\220128_miniseq'
+    FASTQ_file   = r'%s\%s\%s.fastq' % (BaseDIR, sAnalysis_Tag, sAnalysis_Tag.split('_')[0])
     Barcode_file = r'%s\C_PECV6K_with_refseq_211112.csv' % BaseDIR
-    OutDIR = r'%s\output' % BaseDIR
-    sRE = '[T]{4}[ACGT]{16}'
+    OutDIR = r'%s\%s\output_PECV6K' % (BaseDIR, sAnalysis_Tag)
+    sRE = '[T]{4}[ACGT]{16}' ## for PECV6K = 16 / for off-target = 20
     sError = 'ErrorFree'
 
-
     dict_brcd = make_bc_list_dictionary(Barcode_file)
+    os.makedirs(OutDIR, exist_ok=True)
 
     dict_brcd_count, dict_read_type_count = find_barcode_in_NGSread(FASTQ_file, sRE, dict_brcd, sError)
 
@@ -88,11 +88,11 @@ def make_bc_list_dictionary(Barcode_file):
 
     for idx in df_bc_list.index:
         data = df_bc_list.loc[idx]
-        barcode = data['Barcode']
-        convRef = data['convRef']
-        optiRef = data['optiRef']
-        WT_Seq  = data['WTSeq']
-        ED_Seq  = data['EDSeq']
+        barcode = data['Barcode'].upper()
+        convRef = data['convRef'].upper()
+        optiRef = data['optiRef'].upper()
+        WT_Seq  = data['WTSeq'].upper()
+        ED_Seq  = data['EDSeq'].upper()
 
         dict_brcd[barcode] = {'convRef': convRef, 'optiRef': optiRef, 'WTSeq': WT_Seq, 'EDSeq': ED_Seq}
 
